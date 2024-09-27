@@ -8,17 +8,17 @@ import {
   getPublishers,
 } from "../services/apiService";
 import Modal from "react-modal";
-import "../modal-style.css"; 
+import "../modal-style.css";
 
-Modal.setAppElement("#root"); 
+Modal.setAppElement("#root");
 
 function BookList() {
   const [books, setBooks] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState(new Set());
   const [publishers, setPublishers] = useState([]);
   const [selectedAuthorId, setSelectedAuthorId] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedPublisherId, setSelectedPublisherId] = useState("");
   const [newBookName, setNewBookName] = useState("");
   const [stock, setStock] = useState(1);
@@ -52,13 +52,27 @@ function BookList() {
     setPublishers(fetchedPublishers);
   };
 
+  const handleCategoryChange = (categoryId) => {
+    const newSelectedCategories = new Set(selectedCategories);
+    if (newSelectedCategories.has(categoryId)) {
+      newSelectedCategories.delete(categoryId);
+    } else {
+      newSelectedCategories.add(categoryId);
+    }
+    setSelectedCategories(newSelectedCategories);
+  };
+
   const handleAdd = async () => {
     if (!newBookName.trim()) {
       setModalContent("Kitap ismi boş bırakılamaz!");
       setModalIsOpen(true);
       return;
     }
-    if (!selectedAuthorId || !selectedCategoryId || !selectedPublisherId) {
+    if (
+      !selectedAuthorId ||
+      !selectedPublisherId ||
+      selectedCategories.size === 0
+    ) {
       setModalContent("Lütfen tüm alanları doldurun!");
       setModalIsOpen(true);
       return;
@@ -73,14 +87,14 @@ function BookList() {
       const newBook = {
         name: newBookName,
         author: { id: selectedAuthorId },
-        categories: [{ id: selectedCategoryId }],
+        categories: Array.from(selectedCategories).map((id) => ({ id })),
         publisher: { id: selectedPublisherId },
         stock: Number(stock),
       };
       await createBook(newBook);
       setNewBookName("");
       setSelectedAuthorId("");
-      setSelectedCategoryId("");
+      setSelectedCategories(new Set());
       setSelectedPublisherId("");
       setStock(1);
       fetchBooks();
@@ -123,17 +137,18 @@ function BookList() {
           </option>
         ))}
       </select>
-      <select
-        value={selectedCategoryId}
-        onChange={(e) => setSelectedCategoryId(e.target.value)}
-      >
-        <option value="">Kategori Seçin</option>
+      <div>
         {categories.map((category) => (
-          <option key={category.id} value={category.id}>
+          <div key={category.id}>
+            <input
+              type="checkbox"
+              checked={selectedCategories.has(category.id)}
+              onChange={() => handleCategoryChange(category.id)}
+            />
             {category.name}
-          </option>
+          </div>
         ))}
-      </select>
+      </div>
       <select
         value={selectedPublisherId}
         onChange={(e) => setSelectedPublisherId(e.target.value)}
@@ -156,7 +171,8 @@ function BookList() {
       {books.map((book) => (
         <div key={book.id}>
           {book.name} - Yazar: {book.author?.name || "Bilinmiyor"} - Kategori:
-          {book.categories?.[0]?.name || "Bilinmiyor"} - Yayınevi:
+          {book.categories.map((cat) => cat.name).join(", ") || "Bilinmiyor"} -
+          Yayınevi:
           {book.publisher?.name || "Bilinmiyor"} - Stok:
           {book.stock > 0 ? book.stock : "Stok yok"}
           <button onClick={() => handleDelete(book.id)}>Sil</button>
