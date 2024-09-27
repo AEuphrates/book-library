@@ -6,7 +6,6 @@ import {
 } from "../services/apiService";
 import Modal from "react-modal";
 
-
 Modal.setAppElement("#root");
 
 function PublisherList() {
@@ -52,9 +51,9 @@ function PublisherList() {
     };
 
     try {
-      const response = await createPublisher(newPublisher);
+      await createPublisher(newPublisher);
       setNewPublisherName("");
-      fetchPublishers(); 
+      fetchPublishers();
     } catch (error) {
       console.error("Error adding publisher:", error);
       setModalContent(
@@ -67,7 +66,7 @@ function PublisherList() {
   const handleDelete = async (id) => {
     try {
       await deletePublisher(id);
-      fetchPublishers(); 
+      fetchPublishers();
     } catch (error) {
       console.error("Error deleting publisher:", error);
       setModalContent(
