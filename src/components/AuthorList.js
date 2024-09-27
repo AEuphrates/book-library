@@ -3,12 +3,13 @@ import { getAuthors, createAuthor, deleteAuthor } from "../services/apiService";
 import Modal from "react-modal";
 import "../modal-style.css";
 
-
 Modal.setAppElement("#root");
 
 function AuthorList() {
   const [authors, setAuthors] = useState([]);
   const [newAuthorName, setNewAuthorName] = useState("");
+  const [newAuthorBirthDate, setNewAuthorBirthDate] = useState("");
+  const [newAuthorCountry, setNewAuthorCountry] = useState("");
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
@@ -22,8 +23,12 @@ function AuthorList() {
   };
 
   const handleAdd = async () => {
-    if (!newAuthorName.trim()) {
-      openModal("Yazar ismi boş bırakılamaz!");
+    if (
+      !newAuthorName.trim() ||
+      !newAuthorBirthDate.trim() ||
+      !newAuthorCountry.trim()
+    ) {
+      openModal("Lütfen tüm alanları doldurunuz!");
       return;
     }
     if (
@@ -35,11 +40,13 @@ function AuthorList() {
     try {
       const newAuthor = {
         name: newAuthorName,
-        birthDate: "2024-09-24",
-        country: "string",
+        birthDate: newAuthorBirthDate,
+        country: newAuthorCountry,
       };
       await createAuthor(newAuthor);
       setNewAuthorName("");
+      setNewAuthorBirthDate("");
+      setNewAuthorCountry("");
       fetchAuthors();
     } catch (error) {
       openModal("Yazar eklenirken bir hata oluştu.");
@@ -71,6 +78,17 @@ function AuthorList() {
         value={newAuthorName}
         onChange={(e) => setNewAuthorName(e.target.value)}
         placeholder="Yazar ismi girin"
+      />
+      <input
+        type="date"
+        value={newAuthorBirthDate}
+        onChange={(e) => setNewAuthorBirthDate(e.target.value)}
+        placeholder="Doğum tarihi"
+      />
+      <input
+        value={newAuthorCountry}
+        onChange={(e) => setNewAuthorCountry(e.target.value)}
+        placeholder="Ülke"
       />
       <button onClick={handleAdd}>Yeni Yazar Ekle</button>
       {authors.map((author) => (
